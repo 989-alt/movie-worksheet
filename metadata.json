@@ -1,0 +1,5 @@
+{
+  "name": "CineEdu - AI Movie Worksheet Generator",
+  "description": "An educational tool that generates movie-based worksheets for teachers and parents using Google Gemini API. It supports custom movie selection or AI recommendations tailored to specific age groups and educational topics.",
+  "requestFramePermissions": []
+}

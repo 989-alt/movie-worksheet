@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CineEdu - Movie Worksheet Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+      /* Custom scrollbar for better UX in editor */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8; 
+      }
+      
+      /* Print specific overrides */
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      } /* 닫는 괄호 추가됨 */
+
+      /* ContentEditable Placeholder */
+      [contenteditable]:empty:before {
+        content: attr(data-placeholder);
+        color: #94a3b8;
+        pointer-events: none;
+        display: block; /* For Firefox */
+      }
+
+      /* Input/Textarea Cursor Reset */
+      input, textarea, [contenteditable] {
+        cursor: text;
+      }
+
+      /* Inline Blank Box Style - Refined for Layout Boundaries and Usability */
+      .worksheet-blank {
+        display: inline-block; /* Fix for #7: insertion inline */
+        min-width: 60px; /* Fix for #3: minimum width */
+        width: 120px;
+        min-height: 1.6em; /* Fix for #3: minimum height */
+        vertical-align: bottom;
+        background-color: #f1f5f9;
+        border-bottom: 2px solid #64748b;
+        margin: 0 4px;
+        padding: 0 4px;
+        border-radius: 4px 4px 0 0;
+        cursor: default;
+        user-select: none;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      
+      /* Ensure text wraps correctly to prevent overflow (#9) */
+      .prose {
+        overflow-wrap: anywhere;
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap; 
+      }
+    </style>
+    <!-- importmap 삭제됨: Vite 환경에서는 불필요하며 충돌을 유발할 수 있음 -->
+    <!-- index.css 경로 수정: src 내부라면 /src/index.css 로 변경 -->
+    <link rel="stylesheet" href="/src/index.css">
+  </head>
+  <body class="bg-[#FDFBF7] text-slate-800 antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
