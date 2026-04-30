@@ -10,6 +10,11 @@ import MovieForm from './components/MovieForm';
 import WorksheetEditor from './components/WorksheetEditor';
 import { generateWorksheet } from './services/geminiService';
 import { resolveOttForTitle } from './services/ottService';
+import {
+  generateWorksheetFromVideo,
+  GRADE_AGE_DEFAULT,
+  YouTubeClassification,
+} from './services/youtubeService';
 import { Clapperboard } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -91,6 +96,45 @@ function App() {
     }
   };
 
+  // YouTube 영상 컨펌 → 학습지 생성
+  const handleGenerateFromVideo = async (classification: YouTubeClassification) => {
+    setLoadingState({
+      isLoading: true,
+      message: '🎬 영상을 분석하고 학습지를 만드는 중... (최대 1분)',
+    });
+    setError(null);
+    setWorksheetData(null);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      // 영상 학년대에 맞춰 targetAge 자동 보정 (사용자가 form에서 직접 바꿨으면 그대로 사용)
+      const recommendedAge = GRADE_AGE_DEFAULT[classification.primaryGrade] || formData.targetAge;
+      const targetAge = formData.targetAge || recommendedAge;
+
+      const data = await generateWorksheetFromVideo({
+        url: classification.url,
+        targetAge,
+        activityType: classification.suggestedActivityType || formData.activityType,
+        classification,
+      });
+
+      setWorksheetData({
+        ...data,
+        backgroundColor: formData.backgroundColor,
+        ottProviders: [],
+      });
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      console.error('Video worksheet error:', err);
+      setError(err.message || '영상 학습지 생성 중 오류가 발생했습니다.');
+    } finally {
+      abortControllerRef.current = null;
+      setLoadingState({ isLoading: false, message: '' });
+    }
+  };
+
   const handleReset = () => {
     setWorksheetData(null);
     setError(null);
@@ -153,6 +197,7 @@ function App() {
                 formData={formData}
                 setFormData={setFormData}
                 onSubmit={handleGenerate}
+                onSubmitVideo={handleGenerateFromVideo}
                 isLoading={loadingState.isLoading}
               />
             </div>

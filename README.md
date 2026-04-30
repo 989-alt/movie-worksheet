@@ -64,6 +64,6 @@ src/
 
 ## Roadmap
 
-- [x] **Phase A** (현재): Vercel API 마이그레이션, AI 추천 3편+줄거리, KR OTT 라벨, PDF 폰트 race 수정
+- [x] **Phase A**: Vercel API 마이그레이션, AI 추천 3편+줄거리, KR OTT 라벨, PDF 폰트 race 수정
+- [x] **Phase C**: YouTube 링크 → 학년대(초1~2/3~4/5~6/중/고/부적합) 자동 판정 → 학습지 (Gemini 2.5 YouTube URL native 입력)
 - [ ] **Phase B**: 교과서 단원 → 영화 추천 워크플로우 (1~6학년 8과목 단원 매핑)
-- [ ] **Phase C**: YouTube 링크 → 학년대 적합성 판정 → 학습지 (Gemini YouTube native URL 입력)

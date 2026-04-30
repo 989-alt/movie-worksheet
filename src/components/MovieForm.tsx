@@ -11,13 +11,17 @@ import {
   CheckCircle,
   Palette,
   Sparkles,
+  Youtube,
 } from 'lucide-react';
 import MovieRecommendCard from './MovieRecommendCard';
+import YouTubeMode from './YouTubeMode';
+import type { YouTubeClassification } from '../services/youtubeService';
 
 interface MovieFormProps {
   formData: MovieFormData;
   setFormData: React.Dispatch<React.SetStateAction<MovieFormData>>;
   onSubmit: (override?: Partial<MovieFormData>) => void | Promise<void>;
+  onSubmitVideo?: (classification: YouTubeClassification) => void | Promise<void>;
   isLoading: boolean;
 }
 
@@ -34,6 +38,7 @@ const MovieForm: React.FC<MovieFormProps> = ({
   formData,
   setFormData,
   onSubmit,
+  onSubmitVideo,
   isLoading,
 }) => {
   const [suggestions, setSuggestions] = useState<TMDBResult[]>([]);
@@ -125,13 +130,13 @@ const MovieForm: React.FC<MovieFormProps> = ({
       </div>
 
       {/* Mode Tabs */}
-      <div className="flex bg-slate-100 p-1 rounded-xl mb-8">
+      <div className="flex bg-slate-100 p-1 rounded-xl mb-8 flex-wrap gap-1">
         <button
           onClick={() => {
             handleChange('mode', GenerationMode.SPECIFIC_MOVIE);
             setRecommendations([]);
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
             formData.mode === GenerationMode.SPECIFIC_MOVIE
               ? 'bg-white text-blue-600 shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
@@ -142,7 +147,7 @@ const MovieForm: React.FC<MovieFormProps> = ({
         </button>
         <button
           onClick={() => handleChange('mode', GenerationMode.RECOMMENDATION)}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
             formData.mode === GenerationMode.RECOMMENDATION
               ? 'bg-white text-blue-600 shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
@@ -150,6 +155,20 @@ const MovieForm: React.FC<MovieFormProps> = ({
         >
           <Lightbulb size={18} />
           AI 영화 추천
+        </button>
+        <button
+          onClick={() => {
+            handleChange('mode', GenerationMode.YOUTUBE);
+            setRecommendations([]);
+          }}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+            formData.mode === GenerationMode.YOUTUBE
+              ? 'bg-white text-red-600 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Youtube size={18} />
+          YouTube 링크
         </button>
       </div>
 
@@ -205,6 +224,14 @@ const MovieForm: React.FC<MovieFormProps> = ({
               )}
             </div>
           </div>
+        )}
+
+        {/* === YOUTUBE MODE === */}
+        {formData.mode === GenerationMode.YOUTUBE && (
+          <YouTubeMode
+            onConfirm={(c) => onSubmitVideo?.(c)}
+            isParentLoading={isLoading}
+          />
         )}
 
         {/* === RECOMMENDATION MODE === */}
@@ -367,34 +394,37 @@ const MovieForm: React.FC<MovieFormProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={
-            isLoading ||
-            isRecommending ||
-            (formData.mode === GenerationMode.SPECIFIC_MOVIE && !formData.movieTitle)
-          }
-          className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2
-            ${
-              isLoading || isRecommending
-                ? 'bg-slate-300 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30'
-            }`}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="animate-spin" />
-              AI 분석 및 생성 중...
-            </>
-          ) : formData.mode === GenerationMode.RECOMMENDATION && recommendations.length === 0 ? (
-            <>
-              <Sparkles />
-              AI 추천 영화 3편 보기
-            </>
-          ) : (
-            '학습지 만들기'
-          )}
-        </button>
+        {/* YouTube 모드는 자체 컨펌 버튼이 있으므로 메인 submit 숨김 */}
+        {formData.mode !== GenerationMode.YOUTUBE && (
+          <button
+            onClick={handleSubmit}
+            disabled={
+              isLoading ||
+              isRecommending ||
+              (formData.mode === GenerationMode.SPECIFIC_MOVIE && !formData.movieTitle)
+            }
+            className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2
+              ${
+                isLoading || isRecommending
+                  ? 'bg-slate-300 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30'
+              }`}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                AI 분석 및 생성 중...
+              </>
+            ) : formData.mode === GenerationMode.RECOMMENDATION && recommendations.length === 0 ? (
+              <>
+                <Sparkles />
+                AI 추천 영화 3편 보기
+              </>
+            ) : (
+              '학습지 만들기'
+            )}
+          </button>
+        )}
 
         {!isLoading &&
           !isRecommending &&
