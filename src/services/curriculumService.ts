@@ -1,20 +1,27 @@
 import type { UnitMeta } from '../data/curriculumIndex';
 import { resolveOttForTitle } from './ottService';
 import type { OttProvider } from './tmdb';
+import type { KmrbRating } from './geminiService';
 
 export interface UnitMovieRecommendation {
   title: string;
   year?: string;
   genre?: string;
+  koreanRating: KmrbRating;
   reason: string;
-  plotSummary: string;
   unitConnection?: string;
+  plotSummary: string;
   ottProviders?: OttProvider[];
 }
 
 interface ApiResponse {
   unitKey: string;
   recommendations: UnitMovieRecommendation[];
+  meta?: {
+    targetAge: number;
+    allowedRatings: KmrbRating[];
+    rejectedCount: number;
+  };
 }
 
 export async function recommendByUnit(

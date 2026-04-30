@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { ActivityType, GenerationMode, MovieFormData } from '../types';
 import { searchMulti, TMDBResult } from '../services/tmdb';
-import { recommendMovies, MovieRecommendation } from '../services/geminiService';
+import { recommendMovies, MovieRecommendation, KmrbRating } from '../services/geminiService';
 import {
   Film,
   Lightbulb,
@@ -52,6 +52,11 @@ const MovieForm: React.FC<MovieFormProps> = ({
   const [suggestions, setSuggestions] = useState<TMDBResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recommendations, setRecommendations] = useState<MovieRecommendation[]>([]);
+  const [recommendMeta, setRecommendMeta] = useState<{
+    targetAge: number;
+    allowedRatings: KmrbRating[];
+    rejectedCount: number;
+  } | null>(null);
   const [isRecommending, setIsRecommending] = useState(false);
   const [recommendError, setRecommendError] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,13 +100,19 @@ const MovieForm: React.FC<MovieFormProps> = ({
     setRecommendError(null);
     setIsRecommending(true);
     try {
-      const recs = await recommendMovies(
+      const result = await recommendMovies(
         formData.topic,
         formData.ottPlatform,
         formData.targetAge
       );
+      const recs = result.recommendations || [];
+      setRecommendMeta(result.meta || null);
       if (recs.length === 0) {
-        setRecommendError('추천 결과가 없습니다. 주제를 바꿔서 다시 시도해주세요.');
+        const reason =
+          result.meta && result.meta.rejectedCount > 0
+            ? `시청 연령에 맞는 영화가 없어 ${result.meta.rejectedCount}편이 제외됐습니다. 주제를 바꾸거나 대상 연령을 조정해 주세요.`
+            : '추천 결과가 없습니다. 주제를 바꿔서 다시 시도해주세요.';
+        setRecommendError(reason);
       } else {
         setRecommendations(recs);
       }
@@ -260,6 +271,7 @@ const MovieForm: React.FC<MovieFormProps> = ({
         {formData.mode === GenerationMode.UNIT && onRecommendByUnit && onSelectUnitMovie && (
           <UnitPicker
             isLoading={isLoading}
+            targetAge={formData.targetAge}
             onRecommend={onRecommendByUnit}
             onSelectMovie={onSelectUnitMovie}
           />
@@ -340,10 +352,20 @@ const MovieForm: React.FC<MovieFormProps> = ({
 
             {recommendations.length > 0 && (
               <div className="space-y-3">
-                <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" />
-                  추천 영화 3편 — 카드를 누르면 즉시 학습지가 생성됩니다
-                </p>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <CheckCircle size={16} className="text-green-500" />
+                    추천 영화 {recommendations.length}편 — 카드 클릭 시 즉시 학습지 생성
+                  </p>
+                  {recommendMeta && (
+                    <p className="text-xs text-slate-500">
+                      만 {recommendMeta.targetAge}세 허용 등급:{' '}
+                      {recommendMeta.allowedRatings.join(' / ')}
+                      {recommendMeta.rejectedCount > 0 &&
+                        ` · 부적합 ${recommendMeta.rejectedCount}편 자동 제외`}
+                    </p>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 gap-3">
                   {recommendations.map((rec, idx) => (
                     <MovieRecommendCard
@@ -356,6 +378,7 @@ const MovieForm: React.FC<MovieFormProps> = ({
                 <button
                   onClick={() => {
                     setRecommendations([]);
+                    setRecommendMeta(null);
                   }}
                   className="text-sm text-slate-500 hover:text-slate-700 underline"
                 >

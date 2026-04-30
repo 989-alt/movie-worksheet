@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, Tv } from 'lucide-react';
+import { CheckCircle, Tv, Link as LinkIcon } from 'lucide-react';
 import { resolveOttForTitle, MovieOttInfo } from '../services/ottService';
 import type { MovieRecommendation } from '../services/geminiService';
+import RatingBadge from './RatingBadge';
 
 interface MovieRecommendCardProps {
   rec: MovieRecommendation;
@@ -49,9 +50,12 @@ const MovieRecommendCard: React.FC<MovieRecommendCardProps> = ({ rec, onSelect }
     >
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
-          <h4 className="font-bold text-slate-800 group-hover:text-blue-700 leading-snug">
-            {rec.title}
-          </h4>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="font-bold text-slate-800 group-hover:text-blue-700 leading-snug">
+              {rec.title}
+            </h4>
+            <RatingBadge rating={rec.koreanRating} />
+          </div>
           {(rec.year || rec.genre) && (
             <p className="text-xs text-slate-500 mt-0.5">
               {[rec.year, rec.genre].filter(Boolean).join(' · ')}
@@ -65,6 +69,13 @@ const MovieRecommendCard: React.FC<MovieRecommendCardProps> = ({ rec, onSelect }
       </div>
 
       <p className="text-sm text-slate-700 mt-2 font-medium">{rec.reason}</p>
+
+      {rec.topicConnection && (
+        <div className="mt-2 flex items-start gap-1.5 text-xs text-blue-700 bg-blue-50 px-2 py-1.5 rounded-md">
+          <LinkIcon size={12} className="mt-0.5 flex-shrink-0" />
+          <span>{rec.topicConnection}</span>
+        </div>
+      )}
 
       {rec.plotSummary && (
         <div className="mt-3 text-xs text-slate-600">

@@ -1,15 +1,30 @@
 import { MovieFormData, WorksheetData } from '../types';
 
-// 영화 추천 타입 — 3편 + 줄거리
+export type KmrbRating =
+  | '전체관람가'
+  | '12세이상관람가'
+  | '15세이상관람가'
+  | '청소년관람불가';
+
 export interface MovieRecommendation {
   title: string;
   year?: string;
   genre?: string;
+  koreanRating: KmrbRating;
   reason: string;
+  topicConnection?: string;
   plotSummary: string;
 }
 
-// 학습지 생성 요청 (단원 컨텍스트 옵션 포함)
+export interface RecommendResponse {
+  recommendations: MovieRecommendation[];
+  meta?: {
+    targetAge: number;
+    allowedRatings: KmrbRating[];
+    rejectedCount: number;
+  };
+}
+
 export interface GenerateRequest {
   movieTitle?: string;
   targetAge: number;
@@ -53,7 +68,7 @@ export const recommendMovies = async (
   topic: string,
   ottPlatform?: string,
   targetAge?: number
-): Promise<MovieRecommendation[]> => {
+): Promise<RecommendResponse> => {
   try {
     const response = await fetch('/api/recommend-movies', {
       method: 'POST',
@@ -66,9 +81,9 @@ export const recommendMovies = async (
       throw new Error(errorData.details || errorData.error || '추천 실패');
     }
 
-    return (await response.json()) as MovieRecommendation[];
+    return (await response.json()) as RecommendResponse;
   } catch (error: any) {
     console.error('[Recommend Error]:', error);
-    return [];
+    return { recommendations: [] };
   }
 };

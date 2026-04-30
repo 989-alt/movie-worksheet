@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
+import { allowedRatingsForAge, filterByAge, ratingRulesForPrompt } from './_age-rating';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 const MODEL_NAME = 'gemini-2.5-flash';
@@ -51,13 +52,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'unitTitle is required' });
   }
 
+  // grade(학년) 기반 보수적 만 나이 — targetAge가 명시되면 우선
+  const ageFromGrade = grade ? Math.min(7 + grade, 12) : 12;
+  const age = Number(targetAge) || ageFromGrade;
+
   try {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-    const ageHint = targetAge || (grade ? Math.min(7 + grade, 12) : 12);
-    const prompt = `당신은 한국 초등 ${grade || 6}학년 ${semester || 1}학기 ${
-      subjectLabel || ''
-    } 단원 「${unitTitle}」에 어울리는 영화 학습지 자료를 추천하는 교육 전문가입니다.
+    const prompt = `[교과서 단원 기반 영화 추천 — 학교 수업용 학습지 자료]
+대상 학생 만 나이: ${age}세 (한국 ${grade || 6}학년 ${semester || 1}학기 ${subjectLabel || ''})
+단원: 「${unitTitle}」
 
 [단원 성취기준]
 ${achievements.map((a) => `- ${a}`).join('\n') || '- (없음)'}
@@ -71,11 +75,17 @@ ${suggestedMovieThemes.join(', ') || '(없음)'}
 [단원 본문 요약]
 ${bodySummary || '(없음)'}
 
+${ratingRulesForPrompt(age)}
+
+[★단원 연관성 엄수★]
+각 추천 영화는 단원 「${unitTitle}」의 성취기준·핵심 주제와 직접 연결되어야 합니다.
+- 단순히 단원과 비슷한 시대/배경이 아니라, 영화의 줄거리·메시지·인물이 단원 학습 목표를 직접 보강해야 함
+- 분위기·연관 추측 금지. 확신이 들지 않으면 추천하지 마세요.
+- unitConnection 필드에 어떤 성취기준과 어떻게 연결되는지 구체적으로.
+
 [추천 조건]
-- 만 ${ageHint}세 학생에게 적절(폭력·선정·욕설 없음, 학습용)
-- 한국에서 합법적으로 시청 가능한 작품 우선 (Netflix·TVING·Wavve·Watcha·쿠팡플레이·디즈니+ 등)
-- 단원 성취기준·주제와 명확하게 연결되는 작품
-- 정확히 3편 — 각각 다른 영화여야 함
+- 한국에서 합법적으로 시청 가능한 영화·드라마 우선
+- 정확히 3편 (서로 다른 작품)
 
 반드시 아래 JSON 배열로만 응답하세요(정확히 3개):
 [
@@ -83,9 +93,10 @@ ${bodySummary || '(없음)'}
     "title": "영화제목",
     "year": "개봉연도",
     "genre": "장르",
-    "reason": "이 단원과 연결되는 핵심 이유 1~2문장",
-    "plotSummary": "줄거리 5~7문장",
-    "unitConnection": "단원 성취기준 중 어떤 것과 어떻게 연결되는지 1~2문장"
+    "koreanRating": "전체관람가" | "12세이상관람가" | "15세이상관람가" | "청소년관람불가",
+    "reason": "이 단원의 ${age}세 학생에게 좋은 핵심 이유 1~2문장",
+    "unitConnection": "단원 성취기준 중 어떤 것과 어떻게 연결되는지 구체적으로 1~2문장",
+    "plotSummary": "줄거리 5~7문장"
   }
 ]`;
 
@@ -97,8 +108,19 @@ ${bodySummary || '(없음)'}
 
     const text = response.text || '';
     const data = cleanJson<any[]>(text);
-    const trimmed = Array.isArray(data) ? data.slice(0, 3) : [];
-    return res.status(200).json({ unitKey, recommendations: trimmed });
+    const arr = Array.isArray(data) ? data : [];
+
+    const filtered = filterByAge(arr, age).slice(0, 3);
+
+    return res.status(200).json({
+      unitKey,
+      recommendations: filtered,
+      meta: {
+        targetAge: age,
+        allowedRatings: allowedRatingsForAge(age),
+        rejectedCount: arr.length - filtered.length,
+      },
+    });
   } catch (error: any) {
     console.error('[Recommend By Unit Error]:', error);
     return res.status(500).json({

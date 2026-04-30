@@ -1,19 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { BookOpen, Loader2, CheckCircle, ChevronRight, Sparkles, Tv } from 'lucide-react';
+import { BookOpen, Loader2, CheckCircle, ChevronRight, Sparkles, Tv, Link as LinkIcon } from 'lucide-react';
 import { ALL_UNITS, UnitMeta, listGrades, listSubjects, listUnitsBy } from '../data/curriculumIndex';
-import type { OttProvider } from '../services/tmdb';
+import RatingBadge from './RatingBadge';
+import type { UnitMovieRecommendation } from '../services/curriculumService';
 
-export interface UnitMovieRecommendation {
-  title: string;
-  year?: string;
-  genre?: string;
-  reason: string;
-  plotSummary: string;
-  ottProviders?: OttProvider[];
-}
+export type { UnitMovieRecommendation };
 
 interface UnitPickerProps {
   isLoading: boolean;
+  targetAge: number;
   onSelectUnit?: (unit: UnitMeta) => void;
   onRecommend: (unit: UnitMeta) => Promise<UnitMovieRecommendation[]>;
   onSelectMovie: (unit: UnitMeta, rec: UnitMovieRecommendation) => void;
@@ -28,6 +23,7 @@ const SUBJECT_LABEL_FALLBACK: Record<string, string> = {
 
 const UnitPicker: React.FC<UnitPickerProps> = ({
   isLoading,
+  targetAge,
   onSelectUnit,
   onRecommend,
   onSelectMovie,
@@ -236,6 +232,9 @@ const UnitPicker: React.FC<UnitPickerProps> = ({
         <div className="border-t border-slate-200 pt-4 space-y-3">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <h4 className="font-bold text-slate-800">{selectedUnit.unitTitle}</h4>
+            <p className="text-xs text-slate-500 mt-1">
+              만 {targetAge}세 기준 — 시청 등급 자동 필터링됨
+            </p>
             {selectedUnit.achievements.length > 0 && (
               <div className="mt-2 text-sm">
                 <p className="font-semibold text-slate-600 mb-1">성취기준</p>
@@ -278,9 +277,12 @@ const UnitPicker: React.FC<UnitPickerProps> = ({
                   >
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <h5 className="font-bold text-slate-800 group-hover:text-emerald-700">
-                          {r.title}
-                        </h5>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h5 className="font-bold text-slate-800 group-hover:text-emerald-700">
+                            {r.title}
+                          </h5>
+                          <RatingBadge rating={r.koreanRating} />
+                        </div>
                         {(r.year || r.genre) && (
                           <p className="text-xs text-slate-500 mt-0.5">
                             {[r.year, r.genre].filter(Boolean).join(' · ')}
@@ -293,6 +295,12 @@ const UnitPicker: React.FC<UnitPickerProps> = ({
                       />
                     </div>
                     <p className="text-sm text-slate-700 mt-2 font-medium">{r.reason}</p>
+                    {r.unitConnection && (
+                      <div className="mt-2 flex items-start gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2 py-1.5 rounded-md">
+                        <LinkIcon size={12} className="mt-0.5 flex-shrink-0" />
+                        <span>{r.unitConnection}</span>
+                      </div>
+                    )}
                     {r.plotSummary && (
                       <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
                         {r.plotSummary}
