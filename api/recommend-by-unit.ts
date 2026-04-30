@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 const MODEL_NAME = 'gemini-2.5-flash';
 
 function cleanJson<T = any>(text: string): T {
@@ -17,7 +17,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   if (!GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY is not configured' });
+    return res.status(500).json({
+      error: 'GEMINI_API_KEY is not configured',
+      hint: 'Vercel Project Settings → Environment Variables 확인 후 재배포 필요. /api/diag 참조.',
+    });
   }
 
   const {
