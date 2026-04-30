@@ -15,6 +15,8 @@ import {
   GRADE_AGE_DEFAULT,
   YouTubeClassification,
 } from './services/youtubeService';
+import { recommendByUnit, UnitMovieRecommendation } from './services/curriculumService';
+import type { UnitMeta } from './data/curriculumIndex';
 import { Clapperboard } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -135,6 +137,61 @@ function App() {
     }
   };
 
+  // 단원 → 영화 카드 클릭 → 학습지 생성 (단원 컨텍스트 주입)
+  const handleGenerateFromUnit = async (unit: UnitMeta, rec: UnitMovieRecommendation) => {
+    setLoadingState({
+      isLoading: true,
+      message: `📚 ${unit.unitTitle} 단원 컨텍스트로 학습지 생성 중...`,
+    });
+    setError(null);
+    setWorksheetData(null);
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const unitContext = [
+        `단원: ${unit.unitTitle} (${unit.subjectLabel} ${unit.grade}-${unit.semester})`,
+        `성취기준:\n${unit.achievements.map((a) => `- ${a}`).join('\n')}`,
+        `핵심 주제: ${unit.keyTopics.join(', ')}`,
+        unit.bodySummary ? `단원 요약:\n${unit.bodySummary}` : '',
+        rec.unitConnection ? `이 영화의 단원 연결점: ${rec.unitConnection}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      const data = await generateWorksheet({
+        movieTitle: rec.title,
+        targetAge: formData.targetAge,
+        activityType: unit.suggestedActivityType || formData.activityType,
+        mode: 'Specific Movie',
+        plotSummary: rec.plotSummary,
+        unitContext,
+      });
+
+      setWorksheetData({
+        ...data,
+        backgroundColor: formData.backgroundColor,
+        ottProviders: rec.ottProviders || [],
+        unitMeta: {
+          grade: unit.grade,
+          subject: unit.subjectLabel,
+          unitTitle: unit.unitTitle,
+          achievements: unit.achievements,
+        },
+      });
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      console.error('Unit worksheet error:', err);
+      setError(err.message || '단원 기반 학습지 생성 중 오류가 발생했습니다.');
+    } finally {
+      abortControllerRef.current = null;
+      setLoadingState({ isLoading: false, message: '' });
+    }
+  };
+
+  const handleRecommendByUnit = async (unit: UnitMeta) => {
+    return recommendByUnit(unit, formData.targetAge);
+  };
+
   const handleReset = () => {
     setWorksheetData(null);
     setError(null);
@@ -198,6 +255,8 @@ function App() {
                 setFormData={setFormData}
                 onSubmit={handleGenerate}
                 onSubmitVideo={handleGenerateFromVideo}
+                onRecommendByUnit={handleRecommendByUnit}
+                onSelectUnitMovie={handleGenerateFromUnit}
                 isLoading={loadingState.isLoading}
               />
             </div>

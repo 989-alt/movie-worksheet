@@ -23,6 +23,11 @@ dist-ssr
 # Backup of legacy files (Phase A migration)
 .backup/
 
+# Curriculum parsing temporary artifacts
+data/curriculum/_text-*.txt
+data/curriculum/_raw-*.txt
+.tmp-uploads/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

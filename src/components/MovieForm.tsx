@@ -12,16 +12,22 @@ import {
   Palette,
   Sparkles,
   Youtube,
+  BookOpen,
 } from 'lucide-react';
 import MovieRecommendCard from './MovieRecommendCard';
 import YouTubeMode from './YouTubeMode';
+import UnitPicker from './UnitPicker';
 import type { YouTubeClassification } from '../services/youtubeService';
+import type { UnitMeta } from '../data/curriculumIndex';
+import type { UnitMovieRecommendation } from '../services/curriculumService';
 
 interface MovieFormProps {
   formData: MovieFormData;
   setFormData: React.Dispatch<React.SetStateAction<MovieFormData>>;
   onSubmit: (override?: Partial<MovieFormData>) => void | Promise<void>;
   onSubmitVideo?: (classification: YouTubeClassification) => void | Promise<void>;
+  onRecommendByUnit?: (unit: UnitMeta) => Promise<UnitMovieRecommendation[]>;
+  onSelectUnitMovie?: (unit: UnitMeta, rec: UnitMovieRecommendation) => void | Promise<void>;
   isLoading: boolean;
 }
 
@@ -39,6 +45,8 @@ const MovieForm: React.FC<MovieFormProps> = ({
   setFormData,
   onSubmit,
   onSubmitVideo,
+  onRecommendByUnit,
+  onSelectUnitMovie,
   isLoading,
 }) => {
   const [suggestions, setSuggestions] = useState<TMDBResult[]>([]);
@@ -170,6 +178,20 @@ const MovieForm: React.FC<MovieFormProps> = ({
           <Youtube size={18} />
           YouTube 링크
         </button>
+        <button
+          onClick={() => {
+            handleChange('mode', GenerationMode.UNIT);
+            setRecommendations([]);
+          }}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+            formData.mode === GenerationMode.UNIT
+              ? 'bg-white text-emerald-600 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <BookOpen size={18} />
+          교과서 단원
+        </button>
       </div>
 
       <div className="space-y-6">
@@ -231,6 +253,15 @@ const MovieForm: React.FC<MovieFormProps> = ({
           <YouTubeMode
             onConfirm={(c) => onSubmitVideo?.(c)}
             isParentLoading={isLoading}
+          />
+        )}
+
+        {/* === UNIT MODE === */}
+        {formData.mode === GenerationMode.UNIT && onRecommendByUnit && onSelectUnitMovie && (
+          <UnitPicker
+            isLoading={isLoading}
+            onRecommend={onRecommendByUnit}
+            onSelectMovie={onSelectUnitMovie}
           />
         )}
 
@@ -394,8 +425,8 @@ const MovieForm: React.FC<MovieFormProps> = ({
           </div>
         </div>
 
-        {/* YouTube 모드는 자체 컨펌 버튼이 있으므로 메인 submit 숨김 */}
-        {formData.mode !== GenerationMode.YOUTUBE && (
+        {/* YouTube · UNIT 모드는 자체 컨펌 버튼이 있으므로 메인 submit 숨김 */}
+        {formData.mode !== GenerationMode.YOUTUBE && formData.mode !== GenerationMode.UNIT && (
           <button
             onClick={handleSubmit}
             disabled={

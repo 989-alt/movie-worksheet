@@ -39,11 +39,23 @@ npm run dev:vite     # vite만 실행 (API 호출은 실패함, UI 작업 전용
 ## 빌드 & 배포
 
 ```bash
-npm run build        # vite build → dist/
-npm run typecheck    # tsc --noEmit
+npm run build              # vite build → dist/
+npm run typecheck          # tsc --noEmit
+npm run build-curriculum-index  # data/curriculum/*.md → index.json
 ```
 
 GitHub `main` 브랜치 push → Vercel 자동 배포.
+
+## 교과서 단원 데이터 추가 (개발자)
+
+```bash
+# 1) scripts/parse-textbook.ts INPUTS 배열에 PDF 경로 추가
+# 2) PDF → MD 변환 (Gemini 2.5 Pro, ~1분/PDF)
+npm run parse-textbook -- --only=social --force
+# 3) 옵시디언으로 data/curriculum/ vault 열기 → MD 검수·수정
+# 4) 인덱스 재빌드
+npm run build-curriculum-index
+```
 
 ## 디렉토리
 
@@ -66,4 +78,5 @@ src/
 
 - [x] **Phase A**: Vercel API 마이그레이션, AI 추천 3편+줄거리, KR OTT 라벨, PDF 폰트 race 수정
 - [x] **Phase C**: YouTube 링크 → 학년대(초1~2/3~4/5~6/중/고/부적합) 자동 판정 → 학습지 (Gemini 2.5 YouTube URL native 입력)
-- [ ] **Phase B**: 교과서 단원 → 영화 추천 워크플로우 (1~6학년 8과목 단원 매핑)
+- [x] **Phase B (MVP)**: 교과서 단원 → 영화 추천 워크플로우. 6학년 사회 6-1·6-2 (5단원), 국어 6-1 가·나 (8단원) 총 13단원. 옵시디언 검수 가능
+- [ ] Phase B 확장: 1~5학년 / 다른 출판사 / 영어·과학·도덕·실과 추가
