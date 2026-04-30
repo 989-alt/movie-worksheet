@@ -43,7 +43,8 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
           director: data.director,
           releaseYear: data.releaseYear,
           genre: data.genre,
-          ageRating: data.ageRating
+          ageRating: data.ageRating,
+          ottProviders: data.ottProviders || []
         }
       },
       {
@@ -98,10 +99,17 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
     });
   };
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const removeBlockById = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (confirm('정말 삭제하시겠습니까?')) {
-      setBlocks(prev => prev.filter(b => b.id !== id));
+    setConfirmDeleteId(id);
+  };
+
+  const confirmRemoveBlock = () => {
+    if (confirmDeleteId) {
+      setBlocks(prev => prev.filter(b => b.id !== confirmDeleteId));
+      setConfirmDeleteId(null);
     }
   };
 
@@ -222,21 +230,35 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
     dragOverItem.current = null;
   };
 
-  const handleDownloadPdf = async () => {
+  const [pendingPdf, setPendingPdf] = useState(false);
+
+  const handleDownloadPdf = () => {
     if (viewMode === 'edit') {
-      if(confirm("PDF 저장을 위해 미리보기 모드로 전환합니다.")) {
-        setViewMode('preview');
-        setTimeout(handleDownloadPdf, 500);
-      }
+      setPendingPdf(true);
+      setViewMode('preview');
       return;
     }
-    
-    setIsGeneratingPdf(true);
-    setTimeout(async () => {
-      await generatePdfFromPages('print-preview', `${data.movieTitle}_학습지`);
-      setIsGeneratingPdf(false);
-    }, 100);
+    triggerPdfDownload();
   };
+
+  const triggerPdfDownload = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      await generatePdfFromPages('print-preview', `${data.movieTitle}_학습지`);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // viewMode 전환이 commit된 다음에 PDF 트리거
+  useEffect(() => {
+    if (viewMode === 'preview' && pendingPdf) {
+      setPendingPdf(false);
+      // 다음 paint 후 캡처 (PrintPreview 마운트 보장)
+      requestAnimationFrame(() => requestAnimationFrame(triggerPdfDownload));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, pendingPdf]);
 
   // Warning for Inappropriate Content
   if (!data.isAppropriate) {
@@ -324,10 +346,9 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
                 onDragOver={(e) => e.preventDefault()}
                 className={`group relative bg-white border border-slate-200 rounded-xl p-2 md:p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-300 cursor-default`}
              >
-                {/* Block Actions Toolbar (Top Right) - HIDDEN VISUALLY BUT FUNCTIONAL */}
-                {/* Note: User requested to hide these controls visually. Using display: none to ensure they are hidden. */}
+                {/* Block Actions Toolbar (Top Right) */}
                 {block.type !== 'header' && (
-                  <div style={{ display: 'none' }} className="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white shadow-sm rounded-lg border border-slate-100 p-1 cursor-default">
+                  <div className="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white shadow-sm rounded-lg border border-slate-100 p-1 cursor-default">
                     <button onClick={(e) => moveBlock(index, 'up', e)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded"><MoveUp size={14} /></button>
                     <button onClick={(e) => moveBlock(index, 'down', e)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded"><MoveDown size={14} /></button>
                     <div className="w-px h-4 bg-slate-200 mx-1"></div>
@@ -471,11 +492,36 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
       ) : (
         /* PREVIEW MODE */
         <div className="animate-in fade-in slide-in-from-bottom-4">
-           <PrintPreview 
-             blocks={blocks} 
-             themeColor={data.themeColor} 
+           <PrintPreview
+             blocks={blocks}
+             themeColor={data.themeColor}
              designStyle={data.designStyle}
+             backgroundColor={data.backgroundColor}
            />
+        </div>
+      )}
+
+      {/* DELETE CONFIRM MODAL */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl text-center space-y-4">
+            <Trash2 className="mx-auto text-red-500" size={32} />
+            <p className="text-lg font-medium text-slate-800">이 블록을 삭제하시겠습니까?</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-5 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 font-medium"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmRemoveBlock}
+                className="px-5 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 font-medium"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

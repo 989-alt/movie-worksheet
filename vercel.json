@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "functions": {
+    "api/generate-worksheet.ts": { "maxDuration": 60 },
+    "api/recommend-movies.ts": { "maxDuration": 60 },
+    "api/recommend-by-unit.ts": { "maxDuration": 60 },
+    "api/youtube-classify.ts": { "maxDuration": 60 }
+  }
+}

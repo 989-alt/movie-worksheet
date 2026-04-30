@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CineEdu - Movie Worksheet Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>CineEdu - AI 영화 학습지 생성기</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -28,13 +28,31 @@
         background: #94a3b8; 
       }
       
+      /* Mobile responsive A4 preview */
+      @media (max-width: 840px) {
+        .a4-page-container {
+          transform: scale(calc(100vw / 840));
+          transform-origin: top center;
+        }
+        .a4-page-wrapper {
+          height: calc(1123px * (100vw / 840));
+          overflow: hidden;
+        }
+      }
+
       /* Print specific overrides */
       @media print {
-        body { 
+        body {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-      } /* 닫는 괄호 추가됨 */
+        .a4-page-container {
+          transform: none !important;
+        }
+        .a4-page-wrapper {
+          height: auto !important;
+        }
+      }
 
       /* ContentEditable Placeholder */
       [contenteditable]:empty:before {

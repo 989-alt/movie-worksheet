@@ -1,6 +1,39 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
+// DOM commit 보장: 두 번의 RAF + microtask flush
+const waitForFrames = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+
+// element 안에서 사용된 font-family를 거둬서 명시적으로 fonts.load() 호출
+async function ensureFontsLoaded(root: HTMLElement) {
+  const families = new Set<string>();
+  const collect = (el: Element) => {
+    const cs = window.getComputedStyle(el as HTMLElement);
+    cs.fontFamily
+      .split(',')
+      .map((f) => f.trim().replace(/^['"]|['"]$/g, ''))
+      .filter(Boolean)
+      .forEach((f) => families.add(f));
+  };
+
+  collect(root);
+  root.querySelectorAll('*').forEach(collect);
+
+  // 16px 기준으로 모든 family를 명시적으로 로드 요청
+  await Promise.all(
+    Array.from(families).map((f) =>
+      document.fonts.load(`16px "${f}"`).catch(() => undefined)
+    )
+  );
+  // ready 자체도 한번 await (동시 로딩 중인 모든 폰트 완료 보장)
+  await document.fonts.ready;
+}
+
 export const generatePdfFromPages = async (pageClass: string, fileName: string) => {
   const pages = document.querySelectorAll('.' + pageClass);
   if (pages.length === 0) {
@@ -8,35 +41,29 @@ export const generatePdfFromPages = async (pageClass: string, fileName: string) 
     return;
   }
 
-  // A4 size in mm: 210 x 297
   const pdf = new jsPDF('p', 'mm', 'a4');
-  
+
   try {
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i] as HTMLElement;
-      
-      // Add new page for subsequent elements
-      if (i > 0) {
-        pdf.addPage();
-      }
+      if (i > 0) pdf.addPage();
 
-      // Capture the page
+      // 폰트 로딩 + DOM commit 보장
+      await ensureFontsLoaded(page);
+      await waitForFrames();
+
       const canvas = await html2canvas(page, {
-        scale: 2, // Higher scale for sharpness
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        // Ensure we capture the full fixed size of the A4 div
-        windowWidth: 794, 
-        windowHeight: 1123
+        windowWidth: 794,
+        windowHeight: 1123,
       });
 
       const imgData = canvas.toDataURL('image/png');
-      
-      // Calculate dimensions to fit exactly on A4 PDF page
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     }
 
@@ -55,6 +82,9 @@ export const downloadAsPdf = async (elementId: string, fileName: string) => {
   }
 
   try {
+    await ensureFontsLoaded(element);
+    await waitForFrames();
+
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
@@ -63,14 +93,13 @@ export const downloadAsPdf = async (elementId: string, fileName: string) => {
     });
 
     const imgData = canvas.toDataURL('image/png');
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
+    const imgWidth = 210;
+    const pageHeight = 297;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     let heightLeft = imgHeight;
     let position = 0;
 
     const pdf = new jsPDF('p', 'mm', 'a4');
-
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
