@@ -8,8 +8,8 @@ export enum ActivityType {
 export enum GenerationMode {
   SPECIFIC_MOVIE = 'Specific Movie',
   RECOMMENDATION = 'Recommendation',
-  YOUTUBE = 'YouTube Link', // Phase C에서 활성화
-  UNIT = 'Curriculum Unit', // Phase B에서 활성화
+  YOUTUBE = 'YouTube Link',
+  UNIT = 'Curriculum Unit',
 }
 
 export type DesignStyle = 'modern' | 'retro' | 'playful' | 'minimal';
@@ -20,6 +20,11 @@ export interface OttProviderBadge {
   logo_path?: string;
 }
 
+export interface VocabularyItem {
+  word: string;
+  definition: string;
+}
+
 export interface MovieFormData {
   mode: GenerationMode;
   movieTitle?: string;
@@ -27,13 +32,9 @@ export interface MovieFormData {
   topic?: string;
   targetAge: number;
   activityType: ActivityType;
-  // Phase C
   youtubeUrl?: string;
-  // Phase B
-  unitKey?: string; // e.g. "5-2-social-3"
-  // 학습지 배경색
+  unitKey?: string;
   backgroundColor?: string;
-  // 추천 카드에서 자동 채움
   plotSummary?: string;
 }
 
@@ -52,15 +53,18 @@ export interface WorksheetData {
   themeColor: string;
   designStyle: DesignStyle;
   backgroundColor?: string;
-  // Phase A4
   ottProviders?: OttProviderBadge[];
-  // Phase B (단원 메타)
   unitMeta?: {
     grade: number;
     subject: string;
     unitTitle: string;
     achievements?: string[];
   };
+  // Phase E1: educational restructure fields
+  vocabulary?: VocabularyItem[];
+  prediction?: string;
+  selfAssessment?: string[];
+  oneLineReview?: string;
 }
 
 export interface LoadingState {
@@ -68,7 +72,15 @@ export interface LoadingState {
   message: string;
 }
 
-export type BlockType = 'header' | 'text' | 'blank_box' | 'page_break';
+export type BlockType =
+  | 'header'
+  | 'text'
+  | 'blank_box'
+  | 'page_break'
+  | 'vocabulary_table'
+  | 'self_assessment'
+  | 'prediction_box'
+  | 'one_liner';
 
 export interface EditorBlock {
   id: string;
@@ -77,4 +89,6 @@ export interface EditorBlock {
   height?: number;
   data?: any;
   borderStyle?: 'solid' | 'dashed' | 'none';
+  lined?: boolean;
+  label?: string;
 }

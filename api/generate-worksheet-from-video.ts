@@ -56,12 +56,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Invalid YouTube URL' });
   }
 
+  const age = targetAge || 12;
+  const vocabCount = age <= 12 ? 6 : 5;
+  const questionDepth = age <= 12 ? '쉽고 구체적인' : '심층적이고 비판적인';
+
   try {
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-    const prompt = `당신은 교육 전문가이자 영상 분석가입니다. 아래 YouTube 영상을 시청하고 ${
-      targetAge || 12
-    }세 학생용 학습지를 작성해주세요.
+    const prompt = `당신은 교육 전문가이자 영상 분석가입니다. 아래 YouTube 영상을 시청하고 ${age}세 학생용 학습지를 작성해주세요.
 
 활동 유형: "${activityType || '토론 활동'}"
 
@@ -75,8 +77,9 @@ ${
 
 [작성 지침]
 1. 영상의 시각·청각 요소를 학습지에 반영(인상적인 장면·대사 인용 권장)
-2. 토론 질문은 영상의 구체적 장면이나 대사를 근거로 작성
-3. 활동 내용은 ${targetAge || 12}세에게 단순하고 명확하게
+2. 토론 질문은 영상의 구체적 장면이나 대사를 근거로 작성 (${questionDepth} 질문 4개)
+3. 활동 내용은 ${age}세에게 단순하고 명확하게 — ① 모둠 구성 ② 토론 ③ 발표 스텝으로
+4. 어휘는 영상에서 학생이 알아야 할 중요 단어 ${vocabCount}개 추출
 
 [디자인 스타일] modern / retro / playful / minimal 중 적합한 1개
 
@@ -86,7 +89,7 @@ ${
   "director": "채널명 또는 제작자",
   "releaseYear": "업로드 연도(추정 가능 시)",
   "genre": "영상 장르/카테고리",
-  "ageRating": "전체관람가/12세/15세/청소년관람불가",
+  "ageRating": "전체관람가/12세이상관람가/15세이상관람가/청소년관람불가",
   "isAppropriate": true,
   "inappropriateReason": "",
   "plotSummary": "영상 내용 상세 요약 (200자 이상, 구체적 장면 포함)",
@@ -94,11 +97,22 @@ ${
   "discussionQuestions": [
     "영상에서 [구체적 장면]을 보고 어떻게 생각했나요?",
     "[등장인물/내레이터]의 [구체적 행동/말]은 무엇을 의미할까요?",
-    "이 영상의 핵심 메시지는 무엇이며 일상에 어떻게 적용할 수 있을까요?"
+    "이 영상의 핵심 메시지는 무엇이며 일상에 어떻게 적용할 수 있을까요?",
+    "만약 당신이 [상황]에 처했다면 어떻게 행동했을까요?"
   ],
   "activityContent": "<p>학습 활동 안내 HTML</p>",
   "themeColor": "#3b82f6",
   "designStyle": "modern",
+  "vocabulary": [
+    { "word": "어휘1", "definition": "정의 및 설명1" }
+  ],
+  "prediction": "제목과 영상 정보를 보고 시청 전에 어떤 내용일지 예측해보세요.",
+  "selfAssessment": [
+    "이 영상의 핵심 메시지를 이해했나요?",
+    "영상의 주제를 교과서 내용과 연결할 수 있나요?",
+    "영상에서 배운 내용을 나의 일상에 어떻게 적용할 수 있나요?"
+  ],
+  "oneLineReview": "이 영상을 한 문장으로 표현한다면?",
   "videoInsights": {
     "keyScenes": ["주요 장면1", "주요 장면2"],
     "characters": ["주요 인물/내레이터1"],
