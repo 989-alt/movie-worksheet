@@ -56,6 +56,7 @@ const MovieForm: React.FC<MovieFormProps> = ({
     targetAge: number;
     allowedRatings: KmrbRating[];
     rejectedCount: number;
+    usedFallback?: boolean;
   } | null>(null);
   const [isRecommending, setIsRecommending] = useState(false);
   const [recommendError, setRecommendError] = useState<string | null>(null);
@@ -108,11 +109,7 @@ const MovieForm: React.FC<MovieFormProps> = ({
       const recs = result.recommendations || [];
       setRecommendMeta(result.meta || null);
       if (recs.length === 0) {
-        const reason =
-          result.meta && result.meta.rejectedCount > 0
-            ? `시청 연령에 맞는 영화가 없어 ${result.meta.rejectedCount}편이 제외됐습니다. 주제를 바꾸거나 대상 연령을 조정해 주세요.`
-            : '추천 결과가 없습니다. 주제를 바꿔서 다시 시도해주세요.';
-        setRecommendError(reason);
+        setRecommendError('추천 결과가 없습니다. 주제를 바꿔서 다시 시도해주세요.');
       } else {
         setRecommendations(recs);
       }
@@ -358,11 +355,21 @@ const MovieForm: React.FC<MovieFormProps> = ({
                     추천 영화 {recommendations.length}편 — 카드 클릭 시 즉시 학습지 생성
                   </p>
                   {recommendMeta && (
-                    <p className="text-xs text-slate-500">
-                      만 {recommendMeta.targetAge}세 허용 등급:{' '}
-                      {recommendMeta.allowedRatings.join(' / ')}
-                      {recommendMeta.rejectedCount > 0 &&
-                        ` · 부적합 ${recommendMeta.rejectedCount}편 자동 제외`}
+                    <p
+                      className={`text-xs ${
+                        recommendMeta.usedFallback ? 'text-red-600 font-medium' : 'text-slate-500'
+                      }`}
+                    >
+                      {recommendMeta.usedFallback ? (
+                        <>⚠️ 만 {recommendMeta.targetAge}세에 맞는 영화를 찾지 못해 등급이 높은 영화를 표시합니다. 시청 전 교사 검토 필수.</>
+                      ) : (
+                        <>
+                          만 {recommendMeta.targetAge}세 허용 등급:{' '}
+                          {recommendMeta.allowedRatings.join(' / ')}
+                          {recommendMeta.rejectedCount > 0 &&
+                            ` · 부적합 ${recommendMeta.rejectedCount}편 자동 제외`}
+                        </>
+                      )}
                     </p>
                   )}
                 </div>

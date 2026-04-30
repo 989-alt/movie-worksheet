@@ -3,6 +3,7 @@ import { CheckCircle, Tv, Link as LinkIcon } from 'lucide-react';
 import { resolveOttForTitle, MovieOttInfo } from '../services/ottService';
 import type { MovieRecommendation } from '../services/geminiService';
 import RatingBadge from './RatingBadge';
+import AgeWarningBadge from './AgeWarningBadge';
 
 interface MovieRecommendCardProps {
   rec: MovieRecommendation;
@@ -46,8 +47,13 @@ const MovieRecommendCard: React.FC<MovieRecommendCardProps> = ({ rec, onSelect }
           onSelect(rec, ott);
         }
       }}
-      className="text-left p-4 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all group focus:outline-none focus:ring-2 focus:ring-blue-300"
+      className={`relative text-left p-4 border rounded-xl cursor-pointer transition-all group focus:outline-none focus:ring-2 ${
+        rec.ageWarning
+          ? 'border-red-300 hover:border-red-500 hover:bg-red-50 focus:ring-red-300 pt-10'
+          : 'border-slate-200 hover:border-blue-500 hover:bg-blue-50 focus:ring-blue-300'
+      }`}
     >
+      <AgeWarningBadge visible={!!rec.ageWarning} />
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { BookOpen, Loader2, CheckCircle, ChevronRight, Sparkles, Tv, Link as LinkIcon } from 'lucide-react';
 import { ALL_UNITS, UnitMeta, listGrades, listSubjects, listUnitsBy } from '../data/curriculumIndex';
 import RatingBadge from './RatingBadge';
+import AgeWarningBadge from './AgeWarningBadge';
 import type { UnitMovieRecommendation } from '../services/curriculumService';
 
 export type { UnitMovieRecommendation };
@@ -273,8 +274,13 @@ const UnitPicker: React.FC<UnitPickerProps> = ({
                     type="button"
                     onClick={() => onSelectMovie(selectedUnit, r)}
                     disabled={isLoading}
-                    className="text-left p-4 border border-slate-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group disabled:opacity-50"
+                    className={`relative text-left p-4 border rounded-xl transition-all group disabled:opacity-50 ${
+                      r.ageWarning
+                        ? 'border-red-300 hover:border-red-500 hover:bg-red-50 pt-10'
+                        : 'border-slate-200 hover:border-emerald-500 hover:bg-emerald-50'
+                    }`}
                   >
+                    <AgeWarningBadge visible={!!r.ageWarning} />
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">

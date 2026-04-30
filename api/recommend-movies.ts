@@ -75,14 +75,20 @@ ${ratingRulesForPrompt(age)}
     const arr = Array.isArray(data) ? data : [];
 
     // 서버 측 등급 필터 — 프롬프트가 흔들려도 비허용 등급 차단
-    const filtered = filterByAge(arr, age).slice(0, 3);
+    const filtered = filterByAge(arr, age);
+    const usedFallback = filtered.length === 0 && arr.length > 0;
+    // 필터 결과가 0이면 원본 그대로 노출하되 ageWarning=true 플래그 부착
+    const final = (usedFallback ? arr : filtered)
+      .slice(0, 3)
+      .map((r: any) => ({ ...r, ageWarning: usedFallback }));
 
     return res.status(200).json({
-      recommendations: filtered,
+      recommendations: final,
       meta: {
         targetAge: age,
         allowedRatings: allowedRatingsForAge(age),
-        rejectedCount: arr.length - filtered.length,
+        rejectedCount: usedFallback ? 0 : arr.length - filtered.length,
+        usedFallback,
       },
     });
   } catch (error: any) {

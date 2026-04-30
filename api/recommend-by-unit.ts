@@ -110,15 +110,20 @@ ${ratingRulesForPrompt(age)}
     const data = cleanJson<any[]>(text);
     const arr = Array.isArray(data) ? data : [];
 
-    const filtered = filterByAge(arr, age).slice(0, 3);
+    const filtered = filterByAge(arr, age);
+    const usedFallback = filtered.length === 0 && arr.length > 0;
+    const final = (usedFallback ? arr : filtered)
+      .slice(0, 3)
+      .map((r: any) => ({ ...r, ageWarning: usedFallback }));
 
     return res.status(200).json({
       unitKey,
-      recommendations: filtered,
+      recommendations: final,
       meta: {
         targetAge: age,
         allowedRatings: allowedRatingsForAge(age),
-        rejectedCount: arr.length - filtered.length,
+        rejectedCount: usedFallback ? 0 : arr.length - filtered.length,
+        usedFallback,
       },
     });
   } catch (error: any) {

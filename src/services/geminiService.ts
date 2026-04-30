@@ -14,6 +14,7 @@ export interface MovieRecommendation {
   reason: string;
   topicConnection?: string;
   plotSummary: string;
+  ageWarning?: boolean; // true면 시청연령 주의 표시
 }
 
 export interface RecommendResponse {
@@ -22,6 +23,7 @@ export interface RecommendResponse {
     targetAge: number;
     allowedRatings: KmrbRating[];
     rejectedCount: number;
+    usedFallback?: boolean;
   };
 }
 

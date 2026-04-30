@@ -11,6 +11,7 @@ export interface UnitMovieRecommendation {
   reason: string;
   unitConnection?: string;
   plotSummary: string;
+  ageWarning?: boolean;
   ottProviders?: OttProvider[];
 }
 
@@ -21,6 +22,7 @@ interface ApiResponse {
     targetAge: number;
     allowedRatings: KmrbRating[];
     rejectedCount: number;
+    usedFallback?: boolean;
   };
 }
 
