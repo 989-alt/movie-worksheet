@@ -41,3 +41,5 @@ data/curriculum/_raw-*.txt
 
 # Playwright/MCP cache
 .playwright-mcp/
+
+.vercel
