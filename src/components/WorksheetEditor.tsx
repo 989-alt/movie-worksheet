@@ -48,16 +48,20 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
         .join('') +
       `</div>`;
 
-    // Discussion questions with word-count hint
+    // Discussion questions with per-question answer space (2 ruled lines)
+    const ANSWER_BOX_PX = 64; // ~2 lines @ 8mm spacing in PDF; visually ~3 lines on screen
     const questionsHtml = data.discussionQuestions
       .map(
         (q, i) =>
-          `<div style="background:#f8fafc;padding:12px 14px;border-left:4px solid ${data.themeColor};margin-bottom:10px;border-radius:0 6px 6px 0;">` +
+          // Question card
+          `<div style="background:#f8fafc;padding:12px 14px;border-left:4px solid ${data.themeColor};margin-bottom:6px;border-radius:0 6px 6px 0;">` +
           `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">` +
           `<strong style="color:${data.themeColor};">Q${i + 1}.</strong>` +
           `<span style="flex:1;color:#1e293b;font-size:14px;">${q}</span>` +
           `<span style="font-size:11px;color:#94a3b8;white-space:nowrap;flex-shrink:0;">2~3문장</span>` +
-          `</div></div>`
+          `</div></div>` +
+          // Per-question answer box (ruled, 2 lines)
+          `<div style="height:${ANSWER_BOX_PX}px;border:1.5px solid #cbd5e1;border-radius:8px;background:#fdfdfd;background-image:repeating-linear-gradient(to bottom,transparent,transparent calc(8mm - 1px),#e2e8f0 calc(8mm - 1px),#e2e8f0 8mm);margin-bottom:14px;"></div>`
       )
       .join('');
 
@@ -103,14 +107,11 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
         type: 'text',
         content: sectionH2('핵심 주제') + themesHtml,
       },
-      // 6. 생각해보기
+      // 6. 생각해보기 — 각 질문 아래 자체 답변 공간 포함
       {
         id: 'questions-section',
         type: 'text',
-        content:
-          sectionH2('생각해보기') +
-          questionsHtml +
-          `<div style="height:200px;border:2px solid #cbd5e1;border-radius:8px;background:#f8fafc;background-image:repeating-linear-gradient(to bottom,transparent,transparent calc(8mm - 1px),#e2e8f0 calc(8mm - 1px),#e2e8f0 8mm);margin-top:8px;"></div>`,
+        content: sectionH2('생각해보기') + questionsHtml,
       },
       // 7. 심화 활동
       {

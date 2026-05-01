@@ -57,6 +57,9 @@ const MovieForm: React.FC<MovieFormProps> = ({
     allowedRatings: KmrbRating[];
     rejectedCount: number;
     usedFallback?: boolean;
+    ottVerified?: boolean;
+    ottName?: string | null;
+    tmdbCandidateCount?: number;
   } | null>(null);
   const [isRecommending, setIsRecommending] = useState(false);
   const [recommendError, setRecommendError] = useState<string | null>(null);
@@ -294,13 +297,24 @@ const MovieForm: React.FC<MovieFormProps> = ({
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   OTT 플랫폼 (선택)
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.ottPlatform || ''}
                   onChange={(e) => handleChange('ottPlatform', e.target.value)}
-                  placeholder="예: Netflix, TVING, 쿠팡플레이"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer"
+                >
+                  <option value="">전체 (모든 OTT)</option>
+                  <option value="Netflix">Netflix</option>
+                  <option value="Disney+">Disney+</option>
+                  <option value="TVING">TVING (티빙)</option>
+                  <option value="쿠팡플레이">쿠팡플레이</option>
+                  <option value="Wavve">Wavve (웨이브)</option>
+                  <option value="Watcha">Watcha (왓챠)</option>
+                  <option value="Apple TV+">Apple TV+</option>
+                  <option value="Amazon Prime">Amazon Prime</option>
+                </select>
+                <p className="text-xs text-slate-400 mt-1">
+                  선택한 OTT에서 실제 시청 가능한 영화만 검색합니다.
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -355,22 +369,32 @@ const MovieForm: React.FC<MovieFormProps> = ({
                     추천 영화 {recommendations.length}편 — 카드 클릭 시 즉시 학습지 생성
                   </p>
                   {recommendMeta && (
-                    <p
-                      className={`text-xs ${
-                        recommendMeta.usedFallback ? 'text-red-600 font-medium' : 'text-slate-500'
-                      }`}
-                    >
-                      {recommendMeta.usedFallback ? (
-                        <>⚠️ 만 {recommendMeta.targetAge}세에 맞는 영화를 찾지 못해 등급이 높은 영화를 표시합니다. 시청 전 교사 검토 필수.</>
-                      ) : (
-                        <>
-                          만 {recommendMeta.targetAge}세 허용 등급:{' '}
-                          {recommendMeta.allowedRatings.join(' / ')}
-                          {recommendMeta.rejectedCount > 0 &&
-                            ` · 부적합 ${recommendMeta.rejectedCount}편 자동 제외`}
-                        </>
+                    <div className="text-xs space-y-1 text-right">
+                      {recommendMeta.ottVerified && recommendMeta.ottName && (
+                        <p className="text-emerald-600 font-medium">
+                          ✓ {recommendMeta.ottName}에서 시청 가능 검증됨
+                          {recommendMeta.tmdbCandidateCount
+                            ? ` (후보 ${recommendMeta.tmdbCandidateCount}편 중 선별)`
+                            : ''}
+                        </p>
                       )}
-                    </p>
+                      <p
+                        className={
+                          recommendMeta.usedFallback ? 'text-red-600 font-medium' : 'text-slate-500'
+                        }
+                      >
+                        {recommendMeta.usedFallback ? (
+                          <>⚠️ 만 {recommendMeta.targetAge}세에 맞는 영화를 찾지 못해 등급이 높은 영화를 표시합니다. 시청 전 교사 검토 필수.</>
+                        ) : (
+                          <>
+                            만 {recommendMeta.targetAge}세 허용 등급:{' '}
+                            {recommendMeta.allowedRatings.join(' / ')}
+                            {recommendMeta.rejectedCount > 0 &&
+                              ` · 부적합 ${recommendMeta.rejectedCount}편 자동 제외`}
+                          </>
+                        )}
+                      </p>
+                    </div>
                   )}
                 </div>
                 <div className="grid grid-cols-1 gap-3">

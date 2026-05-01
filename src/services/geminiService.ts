@@ -24,6 +24,9 @@ export interface RecommendResponse {
     allowedRatings: KmrbRating[];
     rejectedCount: number;
     usedFallback?: boolean;
+    ottVerified?: boolean;
+    ottName?: string | null;
+    tmdbCandidateCount?: number;
   };
 }
 
