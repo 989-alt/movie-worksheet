@@ -3,12 +3,11 @@ import { WorksheetData, EditorBlock, VocabularyItem } from '../types';
 import {
   Download, Edit3, Eye, Plus, Trash2, GripVertical, Scissors, Square,
   AlertTriangle, RefreshCw, MoveUp, MoveDown, Type, BookOpen, CheckSquare,
-  Lightbulb, PenLine, GraduationCap, User,
+  Lightbulb, PenLine,
 } from 'lucide-react';
 import PrintPreview from './PrintPreview';
 import RichTextEditor from './RichTextEditor';
 import { generatePdfFromPages } from '../utils/pdfGenerator';
-import { generatePdfFromBlocks } from '../utils/pdfTextRenderer';
 
 interface WorksheetEditorProps {
   data: WorksheetData;
@@ -258,37 +257,16 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
     dragOverItem.current = null;
   };
 
-  const [pdfMode, setPdfMode] = useState<'text' | 'image'>('text');
-  const [audience, setAudience] = useState<'student' | 'teacher'>('student');
   const [pendingPdf, setPendingPdf] = useState(false);
 
   const handleDownloadPdf = () => {
-    if (pdfMode === 'text') {
-      triggerTextPdf();
-      return;
-    }
-    // image mode needs preview rendered
+    // 이미지 PDF는 미리보기가 렌더링되어 있어야 캡처 가능
     if (viewMode === 'edit') {
       setPendingPdf(true);
       setViewMode('preview');
       return;
     }
     triggerImagePdf();
-  };
-
-  const triggerTextPdf = async () => {
-    setIsGeneratingPdf(true);
-    try {
-      await generatePdfFromBlocks(blocks, data.themeColor, {
-        audience,
-        fileName: data.movieTitle + '_학습지',
-      });
-    } catch (err) {
-      console.error('[Text PDF Error]:', err);
-      alert('텍스트 PDF 생성 실패. 이미지 모드로 전환해 다시 시도해 주세요.');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
   };
 
   const triggerImagePdf = async () => {
@@ -375,48 +353,8 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
           </button>
         </div>
 
-        {/* PDF 옵션 + 다운로드 */}
+        {/* PDF 다운로드 */}
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          {/* 학생/교사 토글 */}
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs">
-            <button
-              onClick={() => setAudience('student')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-md font-medium transition-all ${
-                audience === 'student' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <User size={13} /> 학생
-            </button>
-            <button
-              onClick={() => setAudience('teacher')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-md font-medium transition-all ${
-                audience === 'teacher' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              <GraduationCap size={13} /> 교사
-            </button>
-          </div>
-          {/* 텍스트/이미지 모드 토글 */}
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs">
-            <button
-              onClick={() => setPdfMode('text')}
-              title="텍스트 PDF — 검색 가능, 소용량"
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
-                pdfMode === 'text' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              텍스트 PDF
-            </button>
-            <button
-              onClick={() => setPdfMode('image')}
-              title="이미지 PDF — 레이아웃 그대로 캡처"
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
-                pdfMode === 'image' ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-500'
-              }`}
-            >
-              이미지 PDF
-            </button>
-          </div>
           <button
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf}
@@ -425,7 +363,7 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
             }`}
             style={{ backgroundColor: isGeneratingPdf ? undefined : data.themeColor }}
           >
-            {isGeneratingPdf ? '생성 중...' : <><Download size={16} /> PDF</>}
+            {isGeneratingPdf ? '생성 중...' : <><Download size={16} /> PDF 다운로드</>}
           </button>
         </div>
       </div>
