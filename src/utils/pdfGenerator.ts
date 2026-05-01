@@ -57,6 +57,8 @@ export const generatePdfFromPages = async (pageClass: string, fileName: string) 
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        width: 794,
+        height: 1123,
         windowWidth: 794,
         windowHeight: 1123,
       });
@@ -97,6 +99,8 @@ export const generateImagesFromPages = async (pageClass: string, fileName: strin
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        width: 794,
+        height: 1123,
         windowWidth: 794,
         windowHeight: 1123,
       });
