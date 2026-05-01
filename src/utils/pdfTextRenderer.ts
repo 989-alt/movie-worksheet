@@ -46,7 +46,8 @@ const WHITE   = rgb(1, 1, 1);
 const RULE    = rgb(0.882, 0.902, 0.925);  // #e2e8f0 줄선 색
 
 // ─── 한글 판별 ────────────────────────────────────────────────────────────────
-function isKorean(ch: string): boolean {
+function isKorean(ch: string | undefined): boolean {
+  if (!ch) return false;
   const c = ch.codePointAt(0) ?? 0;
   return (c >= 0xAC00 && c <= 0xD7A3)   // 한글 음절
     || (c >= 0x1100 && c <= 0x11FF)     // 한글 자모
@@ -56,12 +57,13 @@ function isKorean(ch: string): boolean {
 }
 
 // ─── 텍스트 세그먼트 분리 ────────────────────────────────────────────────────
-function segmentText(text: string): Array<{ t: string; kor: boolean }> {
+function segmentText(text: string | undefined | null): Array<{ t: string; kor: boolean }> {
   const segs: Array<{ t: string; kor: boolean }> = [];
   if (!text) return segs;
+  const s = String(text);
   let buf = '';
-  let curKor = isKorean(text[0]);
-  for (const ch of text) {
+  let curKor = isKorean(s[0]);
+  for (const ch of s) {
     const k = isKorean(ch);
     if (k === curKor) {
       buf += ch;
@@ -85,14 +87,15 @@ function measureText(text: string, korFont: PDFFont, latFont: PDFFont, size: num
 
 // ─── 단어 단위 줄바꿈 ────────────────────────────────────────────────────────
 function wrapLines(
-  text: string,
+  text: string | undefined | null,
   korFont: PDFFont,
   latFont: PDFFont,
   size: number,
   maxW: number,
 ): string[] {
+  if (!text) return [''];
   // 한글은 공백 없이도 줄바꿈 가능하지만, 단어 단위로만 처리 (실용적)
-  const words = text.split(/(\s+)/);
+  const words = String(text).split(/(\s+)/);
   const lines: string[] = [];
   let line = '';
   for (const token of words) {
