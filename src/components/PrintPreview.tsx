@@ -439,6 +439,11 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
           fontFamily: '"Noto Sans KR", sans-serif',
           color: '#1e293b',
           pointerEvents: 'none',
+          // Korean: 어절(공백) 단위로 줄바꿈. 측정 div도 visible 페이지와 동일 정책이어야
+          // offsetHeight 값이 일치한다.
+          wordBreak: 'keep-all',
+          overflowWrap: 'break-word',
+          lineBreak: 'strict',
         }}
       >
         {renderableBlocks.map((b) => (
@@ -468,6 +473,11 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
               color: '#1e293b',
               transformOrigin: 'top center',
               overflow: 'hidden',
+              // Korean text: keep-all → 어절(공백) 경계에서만 줄바꿈
+              // overflowWrap: break-word → 너무 긴 단어/URL은 강제 줄바꿈
+              wordBreak: 'keep-all',
+              overflowWrap: 'break-word',
+              lineBreak: 'strict',
             }}
           >
             {/* Retro border decoration */}
