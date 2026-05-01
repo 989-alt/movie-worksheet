@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Korean text wrapping: 어절(공백) 단위로만 줄바꿈.
+   '들었나요', '어떻게', '관객들은' 같은 한글 토큰이 음절 단위로 쪼개지는 문제 방지.
+   .print-preview 내부의 모든 요소에 강제 적용 (Tailwind prose 등의 word-break:break-word 덮어쓰기). */
+.print-preview,
+.print-preview * {
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  line-break: strict !important;
+}
+
