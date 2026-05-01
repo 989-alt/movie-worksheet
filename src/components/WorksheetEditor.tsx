@@ -3,11 +3,11 @@ import { WorksheetData, EditorBlock, VocabularyItem } from '../types';
 import {
   Download, Edit3, Eye, Plus, Trash2, GripVertical, Scissors, Square,
   AlertTriangle, RefreshCw, MoveUp, MoveDown, Type, BookOpen, CheckSquare,
-  Lightbulb, PenLine,
+  Lightbulb, PenLine, ImageIcon,
 } from 'lucide-react';
 import PrintPreview from './PrintPreview';
 import RichTextEditor from './RichTextEditor';
-import { generatePdfFromPages } from '../utils/pdfGenerator';
+import { generatePdfFromPages, generateImagesFromPages } from '../utils/pdfGenerator';
 
 interface WorksheetEditorProps {
   data: WorksheetData;
@@ -257,16 +257,25 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
     dragOverItem.current = null;
   };
 
-  const [pendingPdf, setPendingPdf] = useState(false);
+  const [pendingDownload, setPendingDownload] = useState<'pdf' | 'image' | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const handleDownloadPdf = () => {
-    // 이미지 PDF는 미리보기가 렌더링되어 있어야 캡처 가능
     if (viewMode === 'edit') {
-      setPendingPdf(true);
+      setPendingDownload('pdf');
       setViewMode('preview');
       return;
     }
     triggerImagePdf();
+  };
+
+  const handleDownloadImage = () => {
+    if (viewMode === 'edit') {
+      setPendingDownload('image');
+      setViewMode('preview');
+      return;
+    }
+    triggerImageDownload();
   };
 
   const triggerImagePdf = async () => {
@@ -278,13 +287,26 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
     }
   };
 
+  const triggerImageDownload = async () => {
+    setIsGeneratingImage(true);
+    try {
+      await generateImagesFromPages('print-preview', `${data.movieTitle}_학습지`);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   useEffect(() => {
-    if (viewMode === 'preview' && pendingPdf) {
-      setPendingPdf(false);
-      requestAnimationFrame(() => requestAnimationFrame(triggerImagePdf));
+    if (viewMode === 'preview' && pendingDownload) {
+      const action = pendingDownload;
+      setPendingDownload(null);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (action === 'pdf') triggerImagePdf();
+        else triggerImageDownload();
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, pendingPdf]);
+  }, [viewMode, pendingDownload]);
 
   if (!data.isAppropriate) {
     return (
@@ -353,17 +375,29 @@ const WorksheetEditor: React.FC<WorksheetEditorProps> = ({ data, onReset }) => {
           </button>
         </div>
 
-        {/* PDF 다운로드 */}
+        {/* 다운로드 버튼들 */}
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <button
-            onClick={handleDownloadPdf}
-            disabled={isGeneratingPdf}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold shadow-md transition-all text-white ${
-              isGeneratingPdf ? 'bg-slate-300 cursor-not-allowed' : 'hover:-translate-y-0.5'
+            onClick={handleDownloadImage}
+            disabled={isGeneratingImage || isGeneratingPdf}
+            title="각 페이지를 PNG 이미지로 저장"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm border transition-all ${
+              isGeneratingImage || isGeneratingPdf
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200'
+                : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:-translate-y-0.5'
             }`}
-            style={{ backgroundColor: isGeneratingPdf ? undefined : data.themeColor }}
           >
-            {isGeneratingPdf ? '생성 중...' : <><Download size={16} /> PDF 다운로드</>}
+            {isGeneratingImage ? '생성 중...' : <><ImageIcon size={16} /> 이미지</>}
+          </button>
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf || isGeneratingImage}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold shadow-md transition-all text-white ${
+              isGeneratingPdf || isGeneratingImage ? 'bg-slate-300 cursor-not-allowed' : 'hover:-translate-y-0.5'
+            }`}
+            style={{ backgroundColor: isGeneratingPdf || isGeneratingImage ? undefined : data.themeColor }}
+          >
+            {isGeneratingPdf ? '생성 중...' : <><Download size={16} /> PDF</>}
           </button>
         </div>
       </div>
