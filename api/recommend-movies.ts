@@ -57,12 +57,12 @@ async function fetchTmdbCandidatesByOtt(
     return Array.isArray(data.results) ? data.results : [];
   };
 
-  // 2페이지 병렬 조회
+  // 2페이지 병렬 조회 = 최대 40편
   const [p1, p2] = await Promise.all([fetchPage(1), fetchPage(2)]);
   const raw = [...p1, ...p2];
   if (raw.length === 0) return [];
 
-  // KR 등급 정보 — release_dates를 영화별 병렬 조회 (상위 30편만)
+  // KR 등급 정보 — release_dates를 영화별 병렬 조회 (상위 30편)
   const top = raw.slice(0, 30);
   const allowedCerts = new Set(maxCertForAge(age));
 
@@ -77,7 +77,6 @@ async function fetchTmdbCandidatesByOtt(
           const rd = await rdRes.json();
           const kr = (rd.results || []).find((r: any) => r.iso_3166_1 === 'KR');
           if (kr?.release_dates?.length) {
-            // 가장 최근 등급
             const latest = [...kr.release_dates].sort(
               (a: any, b: any) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
             )[0];
@@ -100,10 +99,15 @@ async function fetchTmdbCandidatesByOtt(
     })
   );
 
-  // 등급 필터: 빈 등급(미상)은 보수적으로 통과시키되 우선순위 낮춤 → 일단 포함하고 Gemini가 거름
+  // 명확히 부적합 등급(상한 초과)만 제거 — 빈 등급/미상은 그대로 통과시켜 Gemini가 줄거리 기반으로 판단.
+  // post-filter (filterByAge)가 최종 안전망 역할을 함.
   return enriched.filter((c) => {
-    if (!c.certification) return true; // 미상은 통과 (Gemini 단계에서 거름)
-    return allowedCerts.has(c.certification);
+    if (!c.certification) return true;
+    if (allowedCerts.has(c.certification)) return true;
+    // 19세는 무조건 차단
+    if (c.certification === '19' || c.certification === '청소년관람불가') return false;
+    // 그 외 미상/매핑 안되는 등급은 통과 (Gemini가 줄거리로 판단)
+    return true;
   });
 }
 
