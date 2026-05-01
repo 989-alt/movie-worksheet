@@ -439,10 +439,11 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
           fontFamily: '"Noto Sans KR", sans-serif',
           color: '#1e293b',
           pointerEvents: 'none',
-          // Korean: 어절(공백) 단위로 줄바꿈. 측정 div도 visible 페이지와 동일 정책이어야
+          // Korean: 어절(공백) 단위로만 줄바꿈. 측정 div도 visible 페이지와 동일 정책이어야
           // offsetHeight 값이 일치한다.
+          // overflow-wrap을 'normal'로 둬야 '어떻게' 같은 한글 음절이 강제 분할되지 않음.
           wordBreak: 'keep-all',
-          overflowWrap: 'break-word',
+          overflowWrap: 'normal',
           lineBreak: 'strict',
         }}
       >
