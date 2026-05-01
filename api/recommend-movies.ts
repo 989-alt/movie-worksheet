@@ -253,20 +253,35 @@ ${ratingRulesForPrompt(age)}
     const data = cleanJson<any[]>(text);
     const arr = Array.isArray(data) ? data : [];
 
-    // 서버 측 등급 필터 — 프롬프트가 흔들려도 비허용 등급 차단
+    // 서버 측 등급 필터 — 적합한 것부터 채우고, 부족하면 부적합도 ageWarning 플래그로 보충
     const filtered = filterByAge(arr, age);
-    const usedFallback = filtered.length === 0 && arr.length > 0;
-    // 필터 결과가 0이면 원본 그대로 노출하되 ageWarning=true 플래그 부착
-    const final = (usedFallback ? arr : filtered)
-      .slice(0, 3)
-      .map((r: any) => ({ ...r, ageWarning: usedFallback }));
+    const rejectedCount = arr.length - filtered.length;
+
+    // 적합 우선 → 부족하면 부적합으로 보충 (3편 채우기)
+    let final: any[];
+    let usedFallback: boolean;
+    if (filtered.length >= 3) {
+      final = filtered.slice(0, 3).map((r: any) => ({ ...r, ageWarning: false }));
+      usedFallback = false;
+    } else if (filtered.length === 0 && arr.length > 0) {
+      final = arr.slice(0, 3).map((r: any) => ({ ...r, ageWarning: true }));
+      usedFallback = true;
+    } else {
+      // 부분 폴백: 적합 N편 + 부적합 (3-N)편 (ageWarning)
+      const rejected = arr.filter((r: any) => !filtered.includes(r));
+      final = [
+        ...filtered.map((r: any) => ({ ...r, ageWarning: false })),
+        ...rejected.slice(0, 3 - filtered.length).map((r: any) => ({ ...r, ageWarning: true })),
+      ];
+      usedFallback = rejected.length > 0; // 부적합이 섞여있으면 헤더에 경고 표시
+    }
 
     return res.status(200).json({
       recommendations: final,
       meta: {
         targetAge: age,
         allowedRatings: allowedRatingsForAge(age),
-        rejectedCount: usedFallback ? 0 : arr.length - filtered.length,
+        rejectedCount,
         usedFallback,
         ottVerified: !!(ott && tmdbCandidates.length > 0),
         ottName: ott?.displayName || null,
