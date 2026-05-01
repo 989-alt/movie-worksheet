@@ -77,16 +77,32 @@ function BlockBody({
           {block.content}
         </h1>
         <p className="text-sm tracking-widest uppercase opacity-60">Movie Worksheet</p>
-        <div className="mt-6 flex justify-center gap-6 text-sm font-medium opacity-80 flex-wrap">
-          <div className="px-3 py-1 border rounded" style={{ borderColor: themeColor }}>
-            {block.data?.director}
-          </div>
-          <div className="px-3 py-1 border rounded" style={{ borderColor: themeColor }}>
-            {block.data?.releaseYear}
-          </div>
-          <div className="px-3 py-1 border rounded" style={{ borderColor: themeColor }}>
-            {block.data?.genre}
-          </div>
+        <div
+          className="mt-6 flex justify-center gap-3 text-sm font-medium opacity-80 flex-wrap"
+          style={{ alignItems: 'stretch' }}
+        >
+          {[block.data?.director, block.data?.releaseYear, block.data?.genre]
+            .filter(Boolean)
+            .map((v, i) => (
+              <div
+                key={i}
+                className="border rounded"
+                style={{
+                  borderColor: themeColor,
+                  padding: '4px 14px',
+                  fontSize: '13px',
+                  lineHeight: '20px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  minHeight: '30px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {v}
+              </div>
+            ))}
         </div>
         {Array.isArray(block.data?.ottProviders) && block.data.ottProviders.length > 0 && (
           <div className="mt-3 flex justify-center gap-2 text-xs opacity-90 flex-wrap">
@@ -283,8 +299,9 @@ function BlockBody({
             <div
               key={i}
               style={{
-                display: 'flex',
-                alignItems: 'center',
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr',
+                alignItems: 'start',
                 gap: '14px',
                 padding: '9px 0',
                 borderBottom: i < items.length - 1 ? '1px solid #f1f5f9' : 'none',
@@ -309,15 +326,26 @@ function BlockBody({
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '13px',
+                      lineHeight: 1,
                       color: '#94a3b8',
                       flexShrink: 0,
+                      boxSizing: 'border-box',
                     }}
                   >
                     {sym}
                   </div>
                 ))}
               </div>
-              <span style={{ fontSize: '14px', color: '#374151' }}>{item}</span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  color: '#374151',
+                  lineHeight: '26px',
+                  alignSelf: 'start',
+                }}
+              >
+                {item}
+              </span>
             </div>
           ))}
         </div>
