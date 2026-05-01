@@ -457,7 +457,14 @@ function renderVocabularyTable(ctx: Ctx, block: EditorBlock) {
   const headerH = 22;
   if (ctx.y - headerH - items.length * rowH < MB) nextPage(ctx);
 
-  ctx.page.drawRectangle({ x: ML, y: ctx.y - headerH, width: CW, height: headerH, color: rgb(...Object.values(hexRgb(ctx.themeHex)).map((v: any) => v * 0.92 + 0.08) as [number,number,number]) });
+  // Header tint: 92% theme + 8% white
+  const t = hexRgb(ctx.themeHex) as any;
+  const tint = rgb(
+    Math.min(1, t.red * 0.92 + 0.08),
+    Math.min(1, t.green * 0.92 + 0.08),
+    Math.min(1, t.blue * 0.92 + 0.08),
+  );
+  ctx.page.drawRectangle({ x: ML, y: ctx.y - headerH, width: CW, height: headerH, color: tint });
   ctx.page.drawText('어휘', { x: ML + 8, y: ctx.y - 15, size: 10, font: ctx.korB, color: BLACK });
   ctx.page.drawText(showDef ? '정의 및 설명' : '뜻 / 나의 생각', { x: ML + wordColW + 8, y: ctx.y - 15, size: 10, font: ctx.korB, color: BLACK });
   // Header bottom border (theme color)
