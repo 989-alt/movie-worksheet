@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
-import { allowedRatingsForAge, filterByAge, ratingRulesForPrompt } from './_age-rating';
+import { allowedRatingsForAge, filterByAge, ratingRulesForPrompt } from './_age-rating.js';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 const MODEL_NAME = 'gemini-2.5-flash';
