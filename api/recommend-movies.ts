@@ -142,7 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ott = findOttByName(ottPlatform);
   let tmdbCandidates: TmdbCandidate[] = [];
 
-  if (ott && TMDB_API_KEY) {
+  if (ott && ott.tmdbSupported && ott.id != null && TMDB_API_KEY) {
     try {
       tmdbCandidates = await fetchTmdbCandidatesByOtt(ott.id, age);
     } catch (e: any) {
@@ -204,7 +204,9 @@ ${candidateList}
     } else {
       // ── B. TMDB 후보 없음 — 기존 LLM 추천 + 등급 필터로 폴백 ─────────
       const ottHint = ott
-        ? `「${ott.displayName}」 (TMDB 검색 실패 — LLM 지식으로 시청 가능 여부 추정)`
+        ? ott.tmdbSupported
+          ? `「${ott.displayName}」 (TMDB 검색 결과 없음 — LLM 지식으로 시청 가능 여부 추정)`
+          : `「${ott.displayName}」 (TMDB 미지원 OTT — LLM 지식으로 시청 가능 여부 추정)`
         : ottPlatform
           ? `「${ottPlatform}」 (지원 매핑에 없는 OTT — LLM 지식으로 추정)`
           : '한국에서 시청 가능한 모든 플랫폼(Netflix, Disney+, TVING, Wavve, Watcha, 쿠팡플레이 등)';

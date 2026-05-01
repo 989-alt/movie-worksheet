@@ -1,24 +1,29 @@
 /**
  * 한국에서 시청 가능한 OTT 플랫폼 ↔ TMDB Watch Provider ID 매핑.
- * provider_id는 TMDB /watch/providers/movie?watch_region=KR 응답 기준 (안정적인 ID).
+ * provider_id는 TMDB /watch/providers/movie?watch_region=KR 응답 기준 (실측, 2026-05-01).
  * 별칭(aliases)은 사용자 입력 정규화용 — 한글/영문/공백/대소문자 차이 흡수.
+ *
+ * tmdbSupported=false인 OTT는 TMDB가 추적하지 않음 (예: 쿠팡플레이) →
+ * 추천 단계에서 LLM 폴백으로 자동 전환 + UI에 별도 안내.
  */
 
 export interface OttMapping {
-  id: number;
+  id: number | null;       // TMDB provider_id (없으면 null)
   displayName: string;
-  aliases: string[]; // lowercase, no-space
+  aliases: string[];        // 정규화 (lowercase, no-space)된 별칭들
+  tmdbSupported: boolean;
 }
 
 export const KOREAN_OTT_LIST: OttMapping[] = [
-  { id: 8,    displayName: 'Netflix',      aliases: ['netflix', '넷플릭스'] },
-  { id: 337,  displayName: 'Disney+',      aliases: ['disney+', 'disneyplus', '디즈니+', '디즈니플러스'] },
-  { id: 1881, displayName: 'TVING',        aliases: ['tving', '티빙'] },
-  { id: 1859, displayName: '쿠팡플레이',     aliases: ['coupangplay', 'coupang', '쿠팡플레이', '쿠팡'] },
-  { id: 1873, displayName: 'Wavve',        aliases: ['wavve', '웨이브'] },
-  { id: 97,   displayName: 'Watcha',       aliases: ['watcha', '왓챠'] },
-  { id: 350,  displayName: 'Apple TV+',    aliases: ['appletv+', 'appletvplus', 'appletv', '애플tv+', '애플tv플러스', '애플tv'] },
-  { id: 119,  displayName: 'Amazon Prime', aliases: ['amazonprime', 'primevideo', 'amazon', '아마존프라임', '아마존프라임비디오'] },
+  { id: 8,    displayName: 'Netflix',     aliases: ['netflix', '넷플릭스'],                                   tmdbSupported: true  },
+  { id: 337,  displayName: 'Disney+',     aliases: ['disney+', 'disneyplus', 'disney', '디즈니+', '디즈니플러스'], tmdbSupported: true  },
+  { id: 1883, displayName: 'TVING',       aliases: ['tving', '티빙'],                                         tmdbSupported: true  },
+  { id: 356,  displayName: 'Wavve',       aliases: ['wavve', '웨이브'],                                       tmdbSupported: true  },
+  { id: 97,   displayName: 'Watcha',      aliases: ['watcha', '왓챠'],                                       tmdbSupported: true  },
+  { id: 350,  displayName: 'Apple TV+',   aliases: ['appletv+', 'appletvplus', 'appletv', '애플tv+', '애플tv플러스', '애플tv'], tmdbSupported: true },
+  { id: 119,  displayName: 'Amazon Prime', aliases: ['amazonprime', 'primevideo', 'amazon', '아마존프라임', '아마존프라임비디오'], tmdbSupported: true },
+  // 쿠팡플레이 — TMDB 미지원, LLM 폴백 사용
+  { id: null, displayName: '쿠팡플레이',    aliases: ['coupangplay', 'coupang', '쿠팡플레이', '쿠팡'],          tmdbSupported: false },
 ];
 
 function normalize(input: string): string {
