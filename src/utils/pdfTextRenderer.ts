@@ -3,7 +3,9 @@
  * html2canvas 래스터 방식 대비: 검색가능·복사가능·1~2MB 수준
  */
 import { PDFDocument, PDFPage, PDFFont, rgb, StandardFonts, LineCapStyle } from 'pdf-lib';
-import * as fontkit from '@pdf-lib/fontkit';
+// fontkit: Vite는 CJS 모듈에 default interop을 적용하므로 default import가 동작.
+// `import * as fontkit`로 바꾸면 번들에서 `fontkit.create`가 undefined가 됨.
+import fontkit from '@pdf-lib/fontkit';
 import type { EditorBlock, VocabularyItem } from '../types';
 
 // ─── A4 레이아웃 상수 (PDF points, 1pt = 1/72 inch) ─────────────────────────
