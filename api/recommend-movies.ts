@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 import { allowedRatingsForAge, filterByAge, ratingRulesForPrompt } from './_age-rating.js';
 import { findOttByName, maxCertForAge } from './_ott-mapping.js';
-import { allowAiCall } from './_rate-limit';
+import { allowAiCall } from './_rate-limit.js';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.VITE_TMDB_API_KEY;
