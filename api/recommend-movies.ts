@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 import { allowedRatingsForAge, filterByAge, ratingRulesForPrompt } from './_age-rating.js';
 import { findOttByName, maxCertForAge } from './_ott-mapping.js';
+import { allowAiCall } from './_rate-limit';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.VITE_TMDB_API_KEY;
@@ -128,6 +129,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+  if (!allowAiCall(req, res)) return;
   if (!GEMINI_API_KEY) {
     return res.status(500).json({
       error: 'GEMINI_API_KEY is not configured',
