@@ -57,7 +57,7 @@ async function main() {
   console.log('\n=== Test 1: SDK helper ===');
   try {
     const r1 = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-4-hydrogen',
       contents: createUserContent([
         createPartFromUri(uploaded.uri!, uploaded.mimeType || 'application/pdf'),
         '이 PDF의 첫 페이지에 무엇이 있나요? 한 문장으로.',
@@ -72,7 +72,7 @@ async function main() {
   console.log('\n=== Test 2: REST fileData ===');
   try {
     const restRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-4-hydrogen:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,7 +100,7 @@ async function main() {
   console.log('\n=== Test 3: REST file_data snake_case ===');
   try {
     const restRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-4-hydrogen:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
