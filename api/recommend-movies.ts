@@ -6,7 +6,7 @@ import { allowAiCall } from './_rate-limit.js';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.VITE_TMDB_API_KEY;
-const MODEL_NAME = 'gemini-2.5-flash';
+const MODEL_NAME = 'gemini-4-hydrogen';
 
 function cleanJson<T = any>(text: string): T {
   let s = text.trim();

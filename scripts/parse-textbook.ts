@@ -254,10 +254,10 @@ async function processOne(ai: GoogleGenAI, spec: InputSpec): Promise<void> {
   fs.writeFileSync(cachePath, text, 'utf8');
 
   // 2) Gemini 분석
-  console.log(`${label} Gemini 분석 호출 (gemini-2.5-pro)...`);
+  console.log(`${label} Gemini 분석 호출 (gemini-4-hydrogen)...`);
   let response: any = null;
   let lastErr: any = null;
-  for (const model of ['gemini-2.5-pro', 'gemini-2.5-flash']) {
+  for (const model of ['gemini-4-hydrogen']) {
     try {
       response = await ai.models.generateContent({
         model,
